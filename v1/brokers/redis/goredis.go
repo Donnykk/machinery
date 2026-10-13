@@ -80,6 +80,17 @@ func NewGR(cnf *config.Config, addrs []string, db int) iface.Broker {
 	return b
 }
 
+// NewGRWithClient uses an explicitly configured client without parsing a broker URL.
+func NewGRWithClient(cnf *config.Config, client redis.UniversalClient) iface.Broker {
+	b := &BrokerGR{Broker: common.NewBroker(cnf), rclient: client}
+	if cnf.Redis != nil && cnf.Redis.DelayedTasksKey != "" {
+		b.redisDelayedTasksKey = cnf.Redis.DelayedTasksKey
+	} else {
+		b.redisDelayedTasksKey = defaultRedisDelayedTasksKey
+	}
+	return b
+}
+
 // StartConsuming enters a loop and waits for incoming messages
 func (b *BrokerGR) StartConsuming(consumerTag string, concurrency int, taskProcessor iface.TaskProcessor) (bool, error) {
 	b.consumingWG.Add(1)

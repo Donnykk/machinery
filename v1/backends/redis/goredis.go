@@ -73,6 +73,13 @@ func NewGR(cnf *config.Config, addrs []string, db int) iface.Backend {
 	return b
 }
 
+// NewGRWithClient uses an explicitly configured client without parsing a backend URL.
+func NewGRWithClient(cnf *config.Config, client redis.UniversalClient) iface.Backend {
+	b := &BackendGR{Backend: common.NewBackend(cnf), rclient: client}
+	b.redsync = redsync.New(redsyncgoredis.NewPool(client))
+	return b
+}
+
 // InitGroup creates and saves a group meta data object
 func (b *BackendGR) InitGroup(groupUUID string, taskUUIDs []string) error {
 	groupMeta := &tasks.GroupMeta{

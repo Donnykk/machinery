@@ -44,29 +44,14 @@ func BrokerFactory(cnf *config.Config) (brokeriface.Broker, error) {
 	}
 
 	if strings.HasPrefix(cnf.Broker, "redis://") || strings.HasPrefix(cnf.Broker, "rediss://") {
-		var scheme string
-		if strings.HasPrefix(cnf.Broker, "redis://") {
-			scheme = "redis://"
-		} else {
-			scheme = "rediss://"
+		opts, err := redisConnectionOptions(cnf.Broker, cnf.Redis)
+		if err != nil {
+			return nil, err
 		}
-		parts := strings.Split(cnf.Broker, scheme)
-		if len(parts) != 2 {
-			return nil, fmt.Errorf(
-				"Redis broker connection string should be in format %shost:port, instead got %s", scheme,
-				cnf.Broker,
-			)
+		if len(opts.Addrs) == 1 && opts.MasterName == "" && (cnf.Redis == nil || !cnf.Redis.ClusterMode) && opts.TLSConfig == nil {
+			return redisbroker.New(cnf, opts.Addrs[0], opts.Username, opts.Password, "", opts.DB), nil
 		}
-		brokers := strings.Split(parts[1], ",")
-		if len(brokers) > 1 || (cnf.Redis != nil && cnf.Redis.ClusterMode) {
-			return redisbroker.NewGR(cnf, brokers, 0), nil
-		} else {
-			redisHost, redisUsername, redisPassword, redisDB, err := ParseRedisURL(cnf.Broker)
-			if err != nil {
-				return nil, err
-			}
-			return redisbroker.New(cnf, redisHost, redisUsername, redisPassword, "", redisDB), nil
-		}
+		return redisbroker.NewGRWithClient(cnf, newRedisConnectionClient(opts, cnf.Redis)), nil
 	}
 
 	if strings.HasPrefix(cnf.Broker, "redis+socket://") {
@@ -132,25 +117,14 @@ func BackendFactory(cnf *config.Config) (backendiface.Backend, error) {
 	}
 
 	if strings.HasPrefix(cnf.ResultBackend, "redis://") || strings.HasPrefix(cnf.ResultBackend, "rediss://") {
-		var scheme string
-		if strings.HasPrefix(cnf.ResultBackend, "redis://") {
-			scheme = "redis://"
-		} else {
-			scheme = "rediss://"
+		opts, err := redisConnectionOptions(cnf.ResultBackend, cnf.Redis)
+		if err != nil {
+			return nil, err
 		}
-		parts := strings.Split(cnf.ResultBackend, scheme)
-		addrs := strings.Split(parts[1], ",")
-		if len(addrs) > 1 || (cnf.Redis != nil && cnf.Redis.ClusterMode) {
-			return redisbackend.NewGR(cnf, addrs, 0), nil
-		} else {
-			redisHost, redisUsername, redisPassword, redisDB, err := ParseRedisURL(cnf.ResultBackend)
-
-			if err != nil {
-				return nil, err
-			}
-
-			return redisbackend.New(cnf, redisHost, redisUsername, redisPassword, "", redisDB), nil
+		if len(opts.Addrs) == 1 && opts.MasterName == "" && (cnf.Redis == nil || !cnf.Redis.ClusterMode) && opts.TLSConfig == nil {
+			return redisbackend.New(cnf, opts.Addrs[0], opts.Username, opts.Password, "", opts.DB), nil
 		}
+		return redisbackend.NewGRWithClient(cnf, newRedisConnectionClient(opts, cnf.Redis)), nil
 	}
 
 	if strings.HasPrefix(cnf.ResultBackend, "redis+socket://") {

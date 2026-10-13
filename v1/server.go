@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -60,8 +61,11 @@ func NewServer(cnf *config.Config) (*Server, error) {
 		return nil, err
 	}
 
-	// Backend is optional so we ignore the error
-	backend, _ := BackendFactory(cnf)
+	// A missing backend is optional, but a configured Redis backend must be valid.
+	backend, err := BackendFactory(cnf)
+	if err != nil && (strings.HasPrefix(cnf.ResultBackend, "redis://") || strings.HasPrefix(cnf.ResultBackend, "rediss://")) {
+		return nil, fmt.Errorf("invalid Redis result backend: %w", err)
+	}
 
 	// Init lock
 	lock, err := LockFactory(cnf)
