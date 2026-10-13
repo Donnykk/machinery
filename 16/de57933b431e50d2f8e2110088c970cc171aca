@@ -1,0 +1,31 @@
+REDIS_FIXES.md
+  s_572c9c09e35f3e::t_ca51afe081c02a 1-28
+v1/backends/redis/goredis.go
+  s_572c9c09e35f3e::t_5cca24d107446b 76-82
+v1/brokers/redis/goredis.go
+  s_572c9c09e35f3e::t_96b1abfe212b7e 83-93
+v1/factories.go
+  s_572c9c09e35f3e::t_4657351722a521 47-49,51-52,54,120-122,124-125,127
+v1/redis_connection_options.go
+  s_572c9c09e35f3e::t_cde00f42b01d21 1-80
+v1/redis_connection_options_test.go
+  s_572c9c09e35f3e::t_5e4aaf743f531e 1-98
+v1/server.go
+  s_572c9c09e35f3e::t_87d39d789066c0 7,64-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "16de57933b431e50d2f8e2110088c970cc171aca",
+  "prompts": {},
+  "sessions": {
+    "s_572c9c09e35f3e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facbc-3eef-75d2-9dff-62824a796346",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "tangpc <tangpc@chinatelecom.cn>"
+    }
+  }
+}
